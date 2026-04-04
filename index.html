@@ -394,6 +394,17 @@
     // Establecer fecha de hoy por defecto
     fechaInput.valueAsDate = new Date();
 
+    document.getElementById('fecha').addEventListener('change', function() {
+        const fechaInput = this;
+        const fechaSeleccionada = new Date(fechaInput.value + 'T00:00:00');
+  
+     // Corrige la zona horaria restando la diferencia
+    const offset = fechaSeleccionada.getTimezoneOffset();
+    fechaSeleccionada.setMinutes(fechaSeleccionada.getMinutes() - offset);
+  
+    fechaInput.value = fechaSeleccionada.toISOString().split('T')[0];
+});
+
     // Cargar datos del localStorage
     let registros = JSON.parse(localStorage.getItem('horasExtras')) || [];
 
