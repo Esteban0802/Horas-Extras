@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Horas Extras</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .records {
+            margin-top: 40px;
+        }
+
+        .records h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .record-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 5px solid #4facfe;
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .record-name {
+            font-weight: 600;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .record-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .record-details {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .total-hours {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            margin: 30px 0;
+            border-radius: 15px;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+
+        .email-section {
+            background: #f0f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            border: 2px dashed #0ea5e9;
+        }
+
+        .email-section h4 {
+            color: #0369a1;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .email-input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .email-input {
+            flex: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 40px;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #10b981;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+
+            .email-input-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏰ Horas Extras</h1>
+            <p>Registra y envía por correo las horas extras de tus trabajadores</p>
+        </div>
+
+        <div class="form-container">
+            <form id="hoursForm">
+                <div class="form-group">
+                    <label for="workerName">Nombre del Trabajador *</label>
+                    <input type="text" id="workerName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="workerId">ID/Cédula</label>
+                    <input type="text" id="workerId">
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Fecha *</label>
+                    <input type="date" id="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="hours">Horas Extras *</label>
+                    <input type="number" id="hours" min="0" max="24" step="0.5" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Descripción del Trabajo</label>
+                    <textarea id="description" rows="4" placeholder="Describe brevemente el trabajo realizado..."></textarea>
+                </div>
+
+                <button type="submit" class="btn">📤 Registrar Horas</button>
+            </form>
+
+            <div class="records">
+                <h3>📋 Registros Recientes</h3>
+                <div id="recordsList">
+                    <div class="empty-state">
+                        No hay registros aún. ¡Registra las primeras horas extras!
+                    </div>
+                </div>
+                
+                <div id="totalHours" class="total-hours" style="display: none;">
+                    📊 Total de Horas Extras: <span id="totalHoursValue">0</span> horas
+                </div>
+
+                <div class="email-section" id="emailSection" style="display: none;">
+                    <h4>📧 Enviar Reporte por Correo</h4>
+                    <div class="success-message" id="successMessage">
+                        ✅ ¡Reporte preparado! Revisa tu cliente de correo.
+                    </div>
+                    <div class="email-input-group">
+                        <div class="form-group email-input">
+                            <label for="recipientEmail">Correo Destinatario</label>
+                            <input type="email" id="recipientEmail" placeholder="ejemplo@empresa.com" required>
+                        </div>
+                        <div class="form-group email-input">
+                            <label for="senderName">Tu Nombre</label>
+                            <input type="text" id="senderName" placeholder="Tu nombre" required>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success" id="sendEmailBtn">
+                        ✉️ Enviar Reporte Completo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('hoursForm');
+        const recordsList = document.getElementById('recordsList');
+        const totalHoursEl = document.getElementById('totalHours');
+        const totalHoursValue = document.getElementById('totalHoursValue');
+        const emailSection = document.getElementById('emailSection');
+        const sendEmailBtn = document.getElementById('sendEmailBtn');
+        const successMessage = document.getElementById('successMessage');
+        const dateInput = document.getElementById('date');
+
+        // Establecer fecha de hoy por defecto
+        dateInput.valueAsDate = new Date();
+
+        // Cargar registros desde localStorage
+        let records = JSON.parse(localStorage.getItem('extraHours')) || [];
+
+        function saveRecords() {
+            localStorage.setItem('extraHours', JSON.stringify(records));
+        }
+
+        function renderRecords() {
+            if (records.length === 0) {
+                recordsList.innerHTML = '<div class="empty-state">No hay registros aún. ¡Registra las primeras horas extras!</div>';
+                totalHoursEl.style.display = 'none';
+                emailSection.style.display = 'none';
+                return;
+            }
+
+            recordsList.innerHTML = records.map((record, index) => `
+                <div class="record-item">
+                    <div class="record-header">
+                        <div class="record-name">${record.workerName}</div>
+                        <div class="record-date">${new Date(record.date).toLocaleDateString('es-ES')}</div>
+                    </div>
+                    <div class="record-details">
+                        <strong>ID:</strong> ${record.workerId || 'N/A'}<br>
+                        <strong>Horas:</strong> ${record.hours} horas<br>
+                        <strong>Descripción:</strong> ${record.description || 'Sin descripción'}
+                    </div>
+                </div>
+            `).join('');
+
+            // Calcular total de horas
+            const total = records.reduce((sum, record) => sum + parseFloat(record.hours), 0);
+            totalHoursValue.textContent = total.toFixed(1);
+            totalHoursEl.style.display = 'block';
+            emailSection.style.display = 'block';
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newRecord = {
+                id: Date.now(),
+                workerName: document.getElementById('workerName').value,
+                workerId: document.getElementById('workerId').value,
+                date: document.getElementById('date').value,
+                hours: parseFloat(document.getElementById('hours').value),
+                description: document.getElementById('description').value
+            };
+
+            records.unshift(newRecord);
+            saveRecords();
+            renderRecords();
+
+            // Limpiar formulario
+            form.reset();
+            dateInput.valueAsDate = new Date();
+
+            // Feedback visual
+            const btn = form.querySelector('.btn');
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Registrado!';
+            btn.style.background = '#10b981';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '';
+            }, 2000);
+        });
+
+        // Función para enviar email
+        sendEmailBtn.addEventListener('click', function() {
+            const recipientEmail = document.getElementById('recipientEmail').value;
+            const senderName = document.getElementById('senderName').value;
+
+            if (!recipientEmail || !senderName) {
+                alert('Por favor completa todos los campos del correo');
+                return;
+            }
+
+            // Generar reporte HTML
+            const totalHours = records.reduce((sum, record) => sum + parseFloat(record.hours), 0);
+            const reportHTML = `
+                <h2>📊 REPORTE DE HORAS EXTRAS</h2>
+                <p><strong>Generado por:</strong> ${senderName}</p>
+                <p><strong>Fecha del reporte:</strong> ${new Date().toLocaleDateString('es-ES')}</p>
+                <hr>
+                <h3>📈 RESUMEN</h3>
+                <p><strong>Total de registros:</strong> ${records.length}</p>
+                <p><strong>Total de horas extras:</strong> <strong style="font-size: 1.5em; color: #10b981;">${totalHours.toFixed(1)} horas</strong></p>
+                <hr>
+                <h3>📋 DETALLE DE REGISTROS</h3>
+                ${records.map(record => `
+                    <div style="background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 8px; border-left: 4px solid #4facfe;">
+                        <h4>${record.workerName}</h4>
+                        <p><strong>Fecha:</strong> ${new Date(record.date).toLocaleDateString('es-ES')}</p>
+                        <p><strong>ID:</strong> ${record.workerId || 'N/A'}</p>
+                        <p><strong>Horas:</strong> ${record.hours} horas</p>
+                        ${record.description ? `<p><strong>Descripción:</strong> ${record.description}</p>` : ''}
+                    </div>
+                `).join('')}
+                <hr>
+                <p style="color: #666; font-size: 0.9em;">
+                    Este reporte fue generado automáticamente desde el sistema de Horas Extras.
+                </p>
+            `;
+
+            // Datos para el email
+            const emailData = {
+                to: recipientEmail,
+                subject: `📊 Reporte de Horas Extras - ${new Date().toLocaleDateString('es-ES')} (${records.length} registros, ${totalHours.toFixed(1)} horas)`,
+                body: reportHTML
+            };
+
+            // Abrir cliente de correo del usuario
+            const mailtoUrl = `mailto:${emailData.to}?subject=${encodeURIComponent(emailData.subject)}&body=${encodeURIComponent(emailData.body)}`;
+            window.open(mailtoUrl, '_blank');
+
+            // Mostrar mensaje de éxito
+            successMessage.style.display = 'block';
+            successMessage.scrollIntoView({ behavior: 'smooth' });
+
+            // Limpiar campos
+            document.getElementById('recipientEmail').value = '';
+            document.getElementById('senderName').value = '';
+
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 5000);
+        });
+
+        // Renderizar al cargar
+        renderRecords();
+    </script>
+</body>
+</html>

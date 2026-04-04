@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Horas Extras</title>
+  <style>
+    :root {
+      --primary: #0094BC;        /* 0 146 188 - Color principal */
+      --secondary: #5B6770;      /* 91 103 112 - Secundario */
+      --light-bg: #F5F2EF;       /* 245 242 239 - Fondo claro */
+      --white: #FFFFFF;          /* 255 255 255 - Blanco */
+      --success: #10B981;
+      --danger: #EF4444;
+      --shadow: rgba(0, 148, 188, 0.2);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: var(--white);
+      border-radius: 15px;
+      box-shadow: 0 15px 35px var(--shadow);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary), #00A8D4);
+      color: var(--white);
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.2em;
+      margin: 0 0 10px 0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .form-container {
+      padding: 30px;
+      background: var(--light-bg);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--secondary);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #E8E6E3;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      background: var(--white);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 148, 188, 0.1);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary), #008BB5);
+      color: var(--white);
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 10px;
+      box-shadow: 0 4px 15px var(--shadow);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px var(--shadow);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success), #059669);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--danger), #DC2626);
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .btn-group {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    #lista {
+      margin-top: 30px;
+      padding: 0 30px 30px 30px;
+    }
+
+    #lista h2 {
+      color: var(--secondary);
+      margin-bottom: 20px;
+    }
+
+    .total-section {
+      background: linear-gradient(135deg, var(--primary), #00A8D4);
+      color: var(--white);
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 25px;
+      border-radius: 10px;
+      font-size: 1.3em;
+      font-weight: 600;
+      display: none;
+      box-shadow: 0 5px 20px var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--white);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(91, 103, 112, 0.1);
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #F0EDE8;
+    }
+
+    th {
+      background: linear-gradient(135deg, var(--secondary), #6B7A88);
+      color: var(--white);
+      font-weight: 600;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    tr:hover {
+      background-color: var(--light-bg);
+    }
+
+    .email-section {
+      background: linear-gradient(135deg, #F8F7F5, var(--light-bg));
+      padding: 25px;
+      border-radius: 10px;
+      margin-top: 25px;
+      border: 2px dashed var(--primary);
+      display: none;
+      box-shadow: inset 0 2px 10px rgba(0,148,188,0.05);
+    }
+
+    .email-section h3 {
+      color: var(--primary);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+    }
+
+    .email-input-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .email-input-group {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--secondary);
+      font-style: italic;
+      padding: 40px;
+      background: var(--light-bg);
+      border-radius: 10px;
+      border: 2px dashed #D1CDC5;
+    }
+
+    .confirm-dialog {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(91, 103, 112, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(5px);
+    }
+
+    .confirm-dialog-content {
+      background: var(--white);
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 400px;
+      box-shadow: 0 20px 40px rgba(0,148,188,0.25);
+      border: 1px solid var(--light-bg);
+    }
+
+    .confirm-dialog h3 {
+      color: var(--danger);
+      margin-bottom: 15px;
+    }
+
+    .confirm-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .confirm-yes {
+      background: linear-gradient(135deg, var(--danger), #DC2626);
+      color: var(--white);
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(239,68,68,0.3);
+    }
+
+    .confirm-no {
+      background: var(--light-bg);
+      color: var(--secondary);
+      border: 2px solid #E8E6E3;
+      padding: 12px 25px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .message {
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      display: none;
+      font-weight: 500;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .success-message {
+      background: #D1FAE5;
+      color: #065F46;
+      border-left: 5px solid var(--success);
+    }
+
+    .reset-message {
+      background: #FEE2E2;
+      color: #991B1B;
+      border-left: 5px solid var(--danger);
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      .container { border-radius: 10px; margin: 10px; }
+      .form-container, #lista { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⏰ Registro de Horas Extras</h1>
+      <p>Registra, envía por correo y gestiona las horas extras</p>
+    </div>
+
+    <div class="form-container">
+      <form id="formHoras">
+        <div class="form-group">
+          <label for="nombre">Nombre del trabajador:</label>
+          <input type="text" id="nombre" required>
+        </div>
+
+        <div class="form-group">
+          <label for="fecha">Fecha:</label>
+          <input type="date" id="fecha" required>
+        </div>
+
+        <div class="form-group">
+          <label for="horas">Cantidad de horas:</label>
+          <input type="number" id="horas" min="0.5" max="24" step="0.5" required>
+        </div>
+
+        <div class="btn-group">
+          <button type="submit" class="btn">📤 Registrar Horas</button>
+          <button type="button" class="btn btn-danger" id="resetBtn" style="display: none;">
+            🗑️ Restablecer Todo
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div id="lista">
+      <div class="total-section" id="totalSection">
+        📊 Total: <span id="totalHoras">0</span> horas registradas
+      </div>
+
+      <h2>Horas registradas</h2>
+      <div id="tablaBody">
+        <div class="empty-state">
+          No hay registros aún. ¡Registra las primeras horas extras!
+        </div>
+      </div>
+
+      <div class="email-section" id="emailSection">
+        <h3>📧 Enviar Reporte por Correo</h3>
+        <div class="success-message message" id="successMessage">
+          ✅ ¡Reporte preparado! Revisa tu cliente de correo.
+        </div>
+        <div class="email-input-group">
+          <div class="form-group">
+            <label for="emailDestinatario">Correo Destinatario:</label>
+            <input type="email" id="emailDestinatario" placeholder="ejemplo@empresa.com" required>
+          </div>
+          <div class="form-group">
+            <label for="tuNombre">Tu Nombre:</label>
+            <input type="text" id="tuNombre" placeholder="Tu nombre completo" required>
+          </div>
+        </div>
+        <button type="button" class="btn btn-success" id="btnEnviarEmail">
+          ✉️ Enviar Reporte Completo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diálogo de confirmación -->
+  <div class="confirm-dialog" id="confirmDialog">
+    <div class="confirm-dialog-content">
+      <h3>⚠️ ¿Estás seguro?</h3>
+      <p>Se eliminarán <strong>todos</strong> los registros de horas extras.<br>
+      Esta acción no se puede deshacer.</p>
+      <div class="confirm-buttons">
+        <button class="confirm-yes" id="confirmYes">Sí, restablecer</button>
+        <button class="confirm-no" id="confirmNo">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('formHoras');
+    const tablaBody = document.getElementById('tablaBody');
+    const totalHoras = document.getElementById('totalHoras');
+    const totalSection = document.getElementById('totalSection');
+    const resetBtn = document.getElementById('resetBtn');
+    const confirmDialog = document.getElementById('confirmDialog');
+    const confirmYes = document.getElementById('confirmYes');
+    const confirmNo = document.getElementById('confirmNo');
+    const emailSection = document.getElementById('emailSection');
+    const btnEnviarEmail = document.getElementById('btnEnviarEmail');
+    const successMessage = document.getElementById('successMessage');
+    const fechaInput = document.getElementById('fecha');
+
+    // Establecer fecha de hoy por defecto
+    fechaInput.valueAsDate = new Date();
+
+    // Cargar datos del localStorage
+    let registros = JSON.parse(localStorage.getItem('horasExtras')) || [];
+
+    function guardarRegistros() {
+      localStorage.setItem('horasExtras', JSON.stringify(registros));
+    }
+
+    function renderizarTabla() {
+      if (registros.length === 0) {
+        tablaBody.innerHTML = '<div class="empty-state">No hay registros aún. ¡Registra las primeras horas extras!</div>';
+        totalSection.style.display = 'none';
+        emailSection.style.display = 'none';
+        resetBtn.style.display = 'none';
+        return;
+      }
+
+      tablaBody.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Fecha</th>
+              <th>Horas</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${registros.map(registro => `
+              <tr>
+                <td><strong>${registro.nombre}</strong></td>
+                <td>${new Date(registro.fecha).toLocaleDateString('es-ES')}</td>
+                <td><strong style="color: var(--success);">${registro.horas} h</strong></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      const total = registros.reduce((sum, r) => sum + parseFloat(r.horas), 0);
+      totalHoras.textContent = total.toFixed(1);
+      totalSection.style.display = 'block';
+      emailSection.style.display = 'block';
+      resetBtn.style.display = 'block';
+    }
+
+    // Registrar nueva hora
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const nuevoRegistro = {
+        id: Date.now(),
+        nombre: document.getElementById('nombre').value,
+        fecha: document.getElementById('fecha').value,
+        horas: parseFloat(document.getElementById('horas').value)
+      };
+
+      registros.unshift(nuevoRegistro);
+      guardarRegistros();
+      renderizarTabla();
+
+      form.reset();
+      fechaInput.valueAsDate = new Date();
+    });
+
+    // Restablecer todo
+    resetBtn.addEventListener('click', () => {
+      confirmDialog.style.display = 'flex';
+    });
+
+    confirmYes.addEventListener('click', () => {
+      registros = [];
+      localStorage.removeItem('horasExtras');
+      renderizarTabla();
+      confirmDialog.style.display = 'none';
+      
+      // Mostrar mensaje de éxito
+      const message = document.createElement('div');
+      message.className = 'reset-message message';
+      message.textContent = '🗑️ Todos los registros han sido eliminados.';
+      document.getElementById('lista').insertBefore(message, document.getElementById('lista').firstChild);
+      message.style.display = 'block';
+      
+      setTimeout(() => message.remove(), 4000);
+    });
+
+    confirmNo.addEventListener('click', () => {
+      confirmDialog.style.display = 'none';
+    });
+
+    // Enviar por email
+    btnEnviarEmail.addEventListener('click', () => {
+      const emailDestinatario = document.getElementById('emailDestinatario').value;
+      const tuNombre = document.getElementById('tuNombre').value;
+
+      if (!emailDestinatario || !tuNombre) {
+        alert('Por favor completa todos los campos del correo');
+        return;
+      }
+
+      const total = registros.reduce((sum, r) => sum + parseFloat(r.horas), 0);
+      
+      const reporte = `
+📊 REPORTE DE HORAS EXTRAS
+Generado por: ${tuNombre}
+Fecha: ${new Date().toLocaleDateString('es-ES')}
+
+📈 RESUMEN:
+- Total registros: ${registros.length}
+- Total horas: ${total.toFixed(1)} horas
+
+📋 DETALLE:
+${registros.map(r => 
+  `• ${r.nombre} - ${new Date(r.fecha).toLocaleDateString('es-ES')} - ${r.horas} horas`
+).join('\n')}
+
+---
+Reporte automático del sistema de Horas Extras
+      `;
+
+      const subject = `📊 Reporte Horas Extras - ${registros.length} registros, ${total.toFixed(1)}h`;
+      const mailto = `mailto:${emailDestinatario}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(reporte)}`;
+      
+      window.open(mailto, '_blank');
+      successMessage.style.display = 'block';
+      
+      setTimeout(() => {
+        document.getElementById('emailDestinatario').value = '';
+        document.getElementById('tuNombre').value = '';
+        successMessage.style.display = 'none';
+      }, 3000);
+    });
+
+    // Inicializar
+    renderizarTabla();
+  </script>
+</body>
+</html>
