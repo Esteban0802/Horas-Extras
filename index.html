@@ -296,6 +296,15 @@
       .container { border-radius: 10px; margin: 10px; }
       .form-container, #lista { padding: 20px; }
     }
+
+    .tabla-responsive {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+    .tabla-responsive table {
+    min-width: 600px; /* asegura espacio para columnas */
+  }
   </style>
 </head>
 <body>
@@ -324,7 +333,7 @@
 
         <div class="form-group">
           <label for="comentario">Comentarios:</label>
-          <input type="text" id="comentario" placeholder="Ej: Trabajo urgente, falla detectada...">
+          <input type="text" id="comentario" placeholder="Donde y con quien">
         </div>
 
         <div class="btn-group">
@@ -427,6 +436,7 @@
       }
 
       tablaBody.innerHTML = `
+      <div class="tabla-responsive">
         <table>
           <thead>
             <tr>
@@ -452,6 +462,7 @@
             `).join('')}
           </tbody>
         </table>
+        </div>
       `;
 
       const total = registros.reduce((sum, r) => sum + parseFloat(r.horas), 0);
