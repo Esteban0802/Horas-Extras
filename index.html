@@ -395,6 +395,11 @@
     // Establecer fecha de hoy por defecto
     fechaInput.valueAsDate = new Date();
 
+    function formatearFecha(fecha) {
+    const [y, m, d] = fecha.split('-');
+    return new Date(y, m - 1, d).toLocaleDateString('es-ES');
+}
+
     // Cargar datos del localStorage
     let registros = JSON.parse(localStorage.getItem('horasExtras')) || [];
 
@@ -511,9 +516,8 @@ Fecha: ${new Date().toLocaleDateString('es-ES')}
 
 📋 DETALLE:
 ${registros.map(r => 
-  `• ${r.nombre} - ${new Date(r.fecha).toLocaleDateString('es-ES')} - ${r.horas} horas`
+  `• ${r.nombre} - ${formatearFecha(r.fecha)} - ${r.horas} horas`
 ).join('\n')}
-
 ---
 Reporte automático del sistema de Horas Extras
       `;
