@@ -63,8 +63,8 @@
     }
 
     input {
-      width: 100%;
-      padding: 12px;
+      width: 99%;
+   
       border: 2px solid #E8E6E3;
       border-radius: 8px;
       font-size: 16px;
@@ -408,6 +408,11 @@
     }
 
     function renderizarTabla() {
+      registros.sort((a, b) => {
+        const fechaA = new Date(a.fecha);
+        const fechaB = new Date(b.fecha);
+        return fechaA - fechaB; // orden ascendente
+      });
       if (registros.length === 0) {
         tablaBody.innerHTML = '<div class="empty-state">No hay registros aún. ¡Registra las primeras horas extras!</div>';
         totalSection.style.display = 'none';
