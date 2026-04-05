@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -394,17 +395,6 @@
     // Establecer fecha de hoy por defecto
     fechaInput.valueAsDate = new Date();
 
-    document.getElementById('fecha').addEventListener('change', function() {
-        const fechaInput = this;
-        const fechaSeleccionada = new Date(fechaInput.value + 'T00:00:00');
-  
-     // Corrige la zona horaria restando la diferencia
-    const offset = fechaSeleccionada.getTimezoneOffset();
-    fechaSeleccionada.setMinutes(fechaSeleccionada.getMinutes() - offset);
-  
-    fechaInput.value = fechaSeleccionada.toISOString().split('T')[0];
-});
-
     // Cargar datos del localStorage
     let registros = JSON.parse(localStorage.getItem('horasExtras')) || [];
 
@@ -434,7 +424,12 @@
             ${registros.map(registro => `
               <tr>
                 <td><strong>${registro.nombre}</strong></td>
-                <td>${new Date(registro.fecha).toLocaleDateString('es-ES')}</td>
+                <td>${
+                    (() => {
+                      const [y, m, d] = registro.fecha.split('-');
+                      return new Date(y, m - 1, d).toLocaleDateString('es-ES');
+                     })()
+                }</td>
                 <td><strong style="color: var(--success);">${registro.horas} h</strong></td>
               </tr>
             `).join('')}
