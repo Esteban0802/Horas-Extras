@@ -4,6 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <title>Registro de Horas Extras</title>
   <style>
     :root {
@@ -111,7 +115,7 @@
     }
 
     .btn-group {
-      display: grid;
+      display: flex;
       grid-template-columns: 1fr 1fr;
       gap: 15px;
     }
@@ -308,7 +312,38 @@
   </style>
 </head>
 <body>
-  <div class="container">
+
+  <div id="loginSection" style="max-width:400px; margin: 40px auto; background:white; padding:20px; border-radius:10px;">
+    <h2 style="text-align:center;">🔐 Iniciar sesión</h2>
+
+    <input type="email" id="loginEmail" placeholder="Correo" style="margin-bottom:10px;">
+    <input type="password" id="loginPassword" placeholder="Contraseña" style="margin-bottom:10px;">
+
+    <button onclick="login()" class="btn">Ingresar</button>
+    <button onclick="mostrarRegistro()" class="btn btn-success">Crear cuenta</button>
+
+    <p style="text-align:center; margin-top:10px;">
+        <a href="#" onclick="recuperarPassword()" style="color:#0094BC; font-weight:600;">
+        ¿Olvidaste tu contraseña?
+        </a>
+    </p>
+  </div>
+
+  <div id="registerSection" style="max-width:400px; margin: 40px auto; background:white; padding:20px; border-radius:10px; display:none;">
+    <h2 style="text-align:center;">📝 Crear cuenta</h2>
+
+    <input type="text" id="regNombre" placeholder="Nombre" style="margin-bottom:10px;">
+    <input type="text" id="regApellido" placeholder="Apellido" style="margin-bottom:10px;">
+    <input type="email" id="regEmail" placeholder="Correo" style="margin-bottom:10px;">
+    <input type="password" id="regPassword" placeholder="Contraseña" style="margin-bottom:10px;">
+
+    <button onclick="crearCuenta()" class="btn btn-success">Registrarse</button>
+    <button onclick="volverLogin()" class="btn">⬅ Volver</button>
+  </div>
+
+
+
+  <div class="container" id="app" style="display:none;">
     <div class="header">
       <h1>⏰ Registro de Horas Extras</h1>
       <p>Registra, envía por correo y gestiona las horas extras</p>
@@ -316,11 +351,6 @@
 
     <div class="form-container">
       <form id="formHoras">
-        <div class="form-group">
-          <label for="nombre">Nombre del trabajador:</label>
-          <input type="text" id="nombre" required>
-        </div>
-
         <div class="form-group">
           <label for="fecha">Fecha:</label>
           <input type="date" id="fecha" required>
@@ -338,9 +368,6 @@
 
         <div class="btn-group">
           <button type="submit" class="btn">📤 Registrar Horas</button>
-          <button type="button" class="btn btn-danger" id="resetBtn" style="display: none;">
-            🗑️ Restablecer Todo
-          </button>
         </div>
       </form>
     </div>
@@ -357,25 +384,15 @@
         </div>
       </div>
 
-      <div class="email-section" id="emailSection">
-        <h3>📧 Enviar Reporte por Correo</h3>
-        <div class="success-message message" id="successMessage">
-          ✅ ¡Reporte preparado! Revisa tu cliente de correo.
-        </div>
-        <div class="email-input-group">
-          <div class="form-group">
-            <label for="emailDestinatario">Correo Destinatario:</label>
-            <input type="email" id="emailDestinatario" placeholder="ejemplo@empresa.com" required>
-          </div>
-          <div class="form-group">
-            <label for="tuNombre">Tu Nombre:</label>
-            <input type="text" id="tuNombre" placeholder="Tu nombre completo" required>
-          </div>
-        </div>
-        <button type="button" class="btn btn-success" id="btnEnviarEmail">
-          ✉️ Enviar Reporte Completo
-        </button>
-      </div>
+      <button type="button" class="btn" id="btnExportarExcel" style="display:none;">
+        📥 Exportar a Excel
+      </button>
+
+    </div>
+    <div style="text-align:center; margin: 40px 0 10px;">
+      <button onclick="logout()" class="btn btn-danger" style="max-width:220px;">
+      🚪 Cerrar sesión
+      </button>
     </div>
   </div>
 
@@ -405,6 +422,234 @@
     const btnEnviarEmail = document.getElementById('btnEnviarEmail');
     const successMessage = document.getElementById('successMessage');
     const fechaInput = document.getElementById('fecha');
+    const firebaseConfig = {
+    apiKey: "AIzaSyBsY2zEcZRH4vGvlyDKASAf1s6IViS4yeA",
+    authDomain: "horas-extras-43e45.firebaseapp.com",
+    projectId: "horas-extras-43e45",
+    storageBucket: "horas-extras-43e45.firebasestorage.app",
+    messagingSenderId: "85462058063",
+    appId: "1:85462058063:web:4c3b2c505a835c9b19d63a"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const ADMIN_EMAIL = "admin@admin.com"; // 👈 cámbialo por el correo real
+    let esAdmin = false;
+
+function register() {
+  const nombre = document.getElementById('regNombre').value;
+  const apellido = document.getElementById('regApellido').value;
+  const email = document.getElementById('regEmail').value;
+  const password = document.getElementById('regPassword').value;
+
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(userCredential => {
+
+      // 🔥 GUARDAR NOMBRE COMPLETO EN AUTH
+      return userCredential.user.updateProfile({
+        displayName: nombre + " " + apellido
+      });
+
+    })
+    .then(() => {
+      alert("✅ Usuario creado correctamente");
+    })
+    .catch(err => alert(err.message));
+}
+
+function mostrarRegistro() {
+  document.getElementById('loginSection').style.display = 'none';
+  document.getElementById('registerSection').style.display = 'block';
+}
+
+function volverLogin() {
+  document.getElementById('registerSection').style.display = 'none';
+  document.getElementById('loginSection').style.display = 'block';
+}
+
+function crearCuenta() {
+  const nombre = document.getElementById('regNombre').value;
+  const apellido = document.getElementById('regApellido').value;
+  const email = document.getElementById('regEmail').value;
+  const password = document.getElementById('regPassword').value;
+
+  if (!nombre || !apellido || !email || !password) {
+    alert("Completa todos los campos");
+    return;
+  }
+
+  const nombreCompleto = nombre + " " + apellido;
+
+  auth.createUserWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+
+      return userCredential.user.updateProfile({
+        displayName: nombreCompleto
+      });
+
+    })
+    .then(() => {
+      alert("✅ Cuenta creada correctamente");
+      volverLogin();
+    })
+    .catch(err => alert(err.message));
+}
+
+function recuperarPassword() {
+  const email = document.getElementById('loginEmail').value;
+
+  if (!email) {
+    alert("Por favor ingresa tu correo para recuperar la contraseña");
+    return;
+  }
+
+  auth.sendPasswordResetEmail(email)
+    .then(() => {
+      alert("📧 Se envió un correo para restablecer tu contraseña");
+    })
+    .catch(error => {
+      alert("❌ Error: " + error.message);
+    });
+}
+
+document.getElementById('loginEmail').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    login();
+  }
+});
+
+document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    login();
+  }
+});
+
+function login() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => {
+      console.log("✅ Login correcto");
+    })
+    .catch(err => alert(err.message));
+}
+
+let usuarioActual = null;
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    usuarioActual = user;
+
+    // 🔥 DETECTAR SI ES ADMIN
+    esAdmin = user.email === ADMIN_EMAIL;
+
+    const btnExportarExcel = document.getElementById('btnExportarExcel');
+
+      if (esAdmin) {
+      btnExportarExcel.style.display = 'block';
+        } else {
+      btnExportarExcel.style.display = 'none';
+    }
+
+    btnExportarExcel.addEventListener('click', () => {
+
+  // 🔒 BLOQUEO REAL (solo admin)
+  if (!esAdmin) {
+    alert("No tienes permisos para exportar");
+    return;
+  }
+
+  if (registros.length === 0) {
+    alert("No hay datos para exportar");
+    return;
+  }
+
+  // 🔥 Preparar datos
+  const datos = registros.map(r => ({
+    Nombre: r.nombre,
+    Fecha: formatearFecha(r.fecha),
+    Horas: r.horas,
+    Comentario: r.comentario || "-"
+  }));
+
+  // 🔥 Crear hoja
+  const ws = XLSX.utils.json_to_sheet(datos);
+
+  // 🔥 Calcular total
+  const total = registros.reduce((sum, r) => sum + parseFloat(r.horas), 0);
+
+  // 🔥 Agregar total al final
+  XLSX.utils.sheet_add_json(ws, [
+    {},
+    { Nombre: "TOTAL", Horas: total }
+  ], { skipHeader: true, origin: -1 });
+
+  // 🔥 Crear archivo
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Horas Extras");
+
+  // 🔥 Descargar
+  XLSX.writeFile(wb, "reporte_horas_extras.xlsx");
+});
+
+    console.log("Usuario:", user.email);
+    console.log("¿Es admin?:", esAdmin);
+
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    iniciarFirebase(); // 👈 ahora cargamos los datos
+  } else {
+    document.getElementById('loginSection').style.display = 'block';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+function iniciarFirebase() {
+
+  let query;
+
+  if (esAdmin) {
+    // 👨‍💼 ADMIN → ve TODOS los registros
+    query = db.collection("horasExtras")
+      .orderBy("timestamp", "asc");
+
+  } else {
+    // 👷 USUARIO NORMAL → solo sus registros
+    query = db.collection("horasExtras")
+      .where("usuario", "==", usuarioActual.uid)
+      .orderBy("timestamp", "asc");
+  }
+
+  query.onSnapshot(snapshot => {
+
+    registros = [];
+
+    snapshot.forEach(doc => {
+      registros.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+
+    renderizarTablaLocal();
+  });
+}
+
+function logout() {
+  auth.signOut()
+    .then(() => {
+      console.log("Sesión cerrada");
+    })
+    .catch(error => {
+      console.error("Error al cerrar sesión:", error);
+    });
+}
+
 
     // Establecer fecha de hoy por defecto
     fechaInput.valueAsDate = new Date();
@@ -421,56 +666,63 @@
       localStorage.setItem('horasExtras', JSON.stringify(registros));
     }
 
-    function renderizarTabla() {
-      registros.sort((a, b) => {
-        const fechaA = new Date(a.fecha);
-        const fechaB = new Date(b.fecha);
-        return fechaA - fechaB; // orden ascendente
-      });
-      if (registros.length === 0) {
-        tablaBody.innerHTML = '<div class="empty-state">No hay registros aún. ¡Registra las primeras horas extras!</div>';
-        totalSection.style.display = 'none';
-        emailSection.style.display = 'none';
-        resetBtn.style.display = 'none';
-        return;
+    function renderizarTablaLocal() {
+
+  tablaBody.innerHTML = `
+  <div class="tabla-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Fecha</th>
+          <th>Horas</th>
+          <th>Comentario</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${registros.map(registro => `
+          <tr>
+            <td><strong>${registro.nombre}</strong></td>
+            <td>${
+              (() => {
+                const [y, m, d] = registro.fecha.split('-');
+                return new Date(y, m - 1, d).toLocaleDateString('es-ES');
+              })()
+            }</td>
+            <td><strong style="color: var(--success);">${registro.horas} h</strong></td>
+            <td>${registro.comentario || '-'}</td>
+            <td>
+              <button data-id="${registro.id}" class="btn-eliminar" style="padding: 6px 10px; font-size: 12px;">
+                ❌
+              </button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  </div>
+  `;
+
+  // 🔥 ACTIVAR BOTONES
+  document.querySelectorAll('.btn-eliminar').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const id = this.getAttribute('data-id');
+
+      if (confirm("¿Seguro que quieres eliminar este registro?")) {
+        db.collection("horasExtras").doc(id).delete()
+          .then(() => console.log("✅ Eliminado"))
+          .catch(error => console.error("❌ Error:", error));
       }
+    });
+  });
 
-      tablaBody.innerHTML = `
-      <div class="tabla-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Fecha</th>
-              <th>Horas</th>
-              <th>Comentario</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${registros.map(registro => `
-              <tr>
-                <td><strong>${registro.nombre}</strong></td>
-                <td>${
-                    (() => {
-                      const [y, m, d] = registro.fecha.split('-');
-                      return new Date(y, m - 1, d).toLocaleDateString('es-ES');
-                     })()
-                }</td>
-                <td><strong style="color: var(--success);">${registro.horas} h</strong></td>
-                <td>${registro.comentario || '-'}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        </div>
-      `;
-
-      const total = registros.reduce((sum, r) => sum + parseFloat(r.horas), 0);
-      totalHoras.textContent = total.toFixed(1);
-      totalSection.style.display = 'block';
-      emailSection.style.display = 'block';
-      resetBtn.style.display = 'block';
-    }
+  const total = registros.reduce((sum, r) => sum + parseFloat(r.horas), 0);
+  totalHoras.textContent = total.toFixed(1);
+  totalSection.style.display = 'block';
+  emailSection.style.display = 'block';
+  resetBtn.style.display = 'block';
+}
 
     // Registrar nueva hora
     form.addEventListener('submit', function(e) {
@@ -478,15 +730,27 @@
       
       const nuevoRegistro = {
         id: Date.now(),
-        nombre: document.getElementById('nombre').value,
+        nombre: usuarioActual.email,
         fecha: document.getElementById('fecha').value,
         horas: parseFloat(document.getElementById('horas').value),
         comentario: document.getElementById('comentario').value || '-'
       };
 
-      registros.unshift(nuevoRegistro);
-      guardarRegistros();
-      renderizarTabla();
+      db.collection("horasExtras").add({
+        nombre: usuarioActual.displayName || usuarioActual.email,
+        fecha: nuevoRegistro.fecha,
+        horas: nuevoRegistro.horas,
+        comentario: nuevoRegistro.comentario || "",
+        usuario: usuarioActual.uid, // 🔥 IMPORTANTE
+        timestamp: new Date()
+  })
+    .then(() => {
+    form.reset();
+    fechaInput.valueAsDate = new Date();
+  })
+    .catch(error => {
+    console.error("Error al guardar:", error);
+  });
 
       form.reset();
       fechaInput.valueAsDate = new Date();
@@ -500,7 +764,7 @@
     confirmYes.addEventListener('click', () => {
       registros = [];
       localStorage.removeItem('horasExtras');
-      renderizarTabla();
+      renderizarTablaLocal();
       confirmDialog.style.display = 'none';
       
       // Mostrar mensaje de éxito
@@ -516,6 +780,8 @@
     confirmNo.addEventListener('click', () => {
       confirmDialog.style.display = 'none';
     });
+
+
 
     // Enviar por email
     btnEnviarEmail.addEventListener('click', () => {
@@ -559,8 +825,7 @@ Reporte automático del sistema de Horas Extras
       }, 3000);
     });
 
-    // Inicializar
-    renderizarTabla();
+
   </script>
 </body>
 </html>
