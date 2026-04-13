@@ -414,13 +414,6 @@
     const tablaBody = document.getElementById('tablaBody');
     const totalHoras = document.getElementById('totalHoras');
     const totalSection = document.getElementById('totalSection');
-    const resetBtn = document.getElementById('resetBtn');
-    const confirmDialog = document.getElementById('confirmDialog');
-    const confirmYes = document.getElementById('confirmYes');
-    const confirmNo = document.getElementById('confirmNo');
-    const emailSection = document.getElementById('emailSection');
-    const btnEnviarEmail = document.getElementById('btnEnviarEmail');
-    const successMessage = document.getElementById('successMessage');
     const fechaInput = document.getElementById('fecha');
     const firebaseConfig = {
     apiKey: "AIzaSyBsY2zEcZRH4vGvlyDKASAf1s6IViS4yeA",
@@ -555,6 +548,21 @@ auth.onAuthStateChanged(user => {
       btnExportarExcel.style.display = 'none';
     }
 
+
+
+    console.log("Usuario:", user.email);
+    console.log("¿Es admin?:", esAdmin);
+
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+    iniciarFirebase(); // 👈 ahora cargamos los datos
+  } else {
+    document.getElementById('loginSection').style.display = 'block';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
     btnExportarExcel.addEventListener('click', () => {
 
   // 🔒 BLOQUEO REAL (solo admin)
@@ -567,6 +575,13 @@ auth.onAuthStateChanged(user => {
     alert("No hay datos para exportar");
     return;
   }
+
+    // 🔥 ORDENAR ANTES DE EXPORTAR (AQUÍ VA)
+  const registrosOrdenados = [...registros].sort((a, b) => {
+    if (a.nombre < b.nombre) return -1;
+    if (a.nombre > b.nombre) return 1;
+    return new Date(a.fecha) - new Date(b.fecha);
+  });
 
   // 🔥 Preparar datos
   const datos = registros.map(r => ({
@@ -594,19 +609,6 @@ auth.onAuthStateChanged(user => {
 
   // 🔥 Descargar
   XLSX.writeFile(wb, "reporte_horas_extras.xlsx");
-});
-
-    console.log("Usuario:", user.email);
-    console.log("¿Es admin?:", esAdmin);
-
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-
-    iniciarFirebase(); // 👈 ahora cargamos los datos
-  } else {
-    document.getElementById('loginSection').style.display = 'block';
-    document.getElementById('app').style.display = 'none';
-  }
 });
 
 function iniciarFirebase() {
@@ -659,14 +661,15 @@ function logout() {
     return new Date(y, m - 1, d).toLocaleDateString('es-ES');
 }
 
-    // Cargar datos del localStorage
-    let registros = JSON.parse(localStorage.getItem('horasExtras')) || [];
-
-    function guardarRegistros() {
-      localStorage.setItem('horasExtras', JSON.stringify(registros));
-    }
-
     function renderizarTablaLocal() {
+
+    // 🔥 ORDENAR POR NOMBRE Y FECHA (AQUÍ VA)
+  registros.sort((a, b) => {
+    if (a.nombre < b.nombre) return -1;
+    if (a.nombre > b.nombre) return 1;
+
+    return new Date(a.fecha) - new Date(b.fecha);
+  });
 
   tablaBody.innerHTML = `
   <div class="tabla-responsive">
@@ -730,7 +733,6 @@ function logout() {
       
       const nuevoRegistro = {
         id: Date.now(),
-        nombre: usuarioActual.email,
         fecha: document.getElementById('fecha').value,
         horas: parseFloat(document.getElementById('horas').value),
         comentario: document.getElementById('comentario').value || '-'
@@ -779,50 +781,6 @@ function logout() {
 
     confirmNo.addEventListener('click', () => {
       confirmDialog.style.display = 'none';
-    });
-
-
-
-    // Enviar por email
-    btnEnviarEmail.addEventListener('click', () => {
-      const emailDestinatario = document.getElementById('emailDestinatario').value;
-      const tuNombre = document.getElementById('tuNombre').value;
-
-      if (!emailDestinatario || !tuNombre) {
-        alert('Por favor completa todos los campos del correo');
-        return;
-      }
-
-      const total = registros.reduce((sum, r) => sum + parseFloat(r.horas), 0);
-      
-      const reporte = `
-📊 REPORTE DE HORAS EXTRAS
-Generado por: ${tuNombre}
-Fecha: ${new Date().toLocaleDateString('es-ES')}
-
-📈 RESUMEN:
-- Total registros: ${registros.length}
-- Total horas: ${total.toFixed(1)} horas
-
-📋 DETALLE:
-${registros.map(r => 
-  `• ${r.nombre} - ${formatearFecha(r.fecha)} - ${r.horas} horas - ${r.comentario || 'Sin comentario'}`
-).join('\n')}
----
-Reporte automático del sistema de Horas Extras
-      `;
-
-      const subject = `📊 Reporte Horas Extras - ${registros.length} registros, ${total.toFixed(1)}h`;
-      const mailto = `mailto:${emailDestinatario}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(reporte)}`;
-      
-      window.open(mailto, '_blank');
-      successMessage.style.display = 'block';
-      
-      setTimeout(() => {
-        document.getElementById('emailDestinatario').value = '';
-        document.getElementById('tuNombre').value = '';
-        successMessage.style.display = 'none';
-      }, 3000);
     });
 
 
